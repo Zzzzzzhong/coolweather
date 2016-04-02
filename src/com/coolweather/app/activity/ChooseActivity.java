@@ -11,6 +11,7 @@ import com.coolweather.app.util.Utility;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -25,9 +26,6 @@ public class ChooseActivity extends Activity {
 	
 	private static final String GET_CHINESE_CITYS_ADDRESS = 
 			"https://api.heweather.com/x3/citylist?search=allchina&key=16902dbe3ac24c6c8bfccc2056624f13";
-	
-	private static final String GET_CITY_WEATHER_ADDRESS = 
-			"https://api.heweather.com/x3/weather?";
 	
 	private TextView titleText;
 	private ListView listView;
@@ -64,6 +62,10 @@ public class ChooseActivity extends Activity {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				selectedCity = cityInfoList.get(position);
+				Intent intent = new Intent(ChooseActivity.this, WeatherActivity.class);
+				intent.putExtra("cityId", selectedCity.getCityId());
+				intent.putExtra("cityName", selectedCity.getCityName());
+				startActivity(intent);
 //				queryWeatherOfCity();
 			}
 		});
@@ -107,44 +109,6 @@ public class ChooseActivity extends Activity {
 						}
 					}
 				});
-			}
-			
-			@Override
-			public void onError(Exception e) {
-				//通过runOnUiThread()回到主线程处理逻辑
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						//隐藏进度对话框并弹出toast提示加载失败
-						closeProgressDialog();
-						Toast.makeText(ChooseActivity.this, 
-								R.string.load_error, Toast.LENGTH_SHORT).show();
-					}
-				});
-			}
-		});
-	}
-	
-	/** 从服务器查询选中城市的天气 */
-	protected void queryWeatherOfCity() {
-		//根据选中的城市获取查询天气的网址
-		String address = GET_CITY_WEATHER_ADDRESS 
-				+ "cityid=" + selectedCity.getCityId() + "&key=16902dbe3ac24c6c8bfccc2056624f13";
-		showProgressDialog();
-		HttpUtil.sendHttpRequest(address, new HttpCallbackListener() {
-			boolean result = false;
-			@Override
-			public void onFinish(String response) {
-				result = Utility.handleCitysResponse(coolWeatherDB, response);
-				if(result) {
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							closeProgressDialog();
-							queryCityInfo();
-						}
-					});
-				}
 			}
 			
 			@Override
