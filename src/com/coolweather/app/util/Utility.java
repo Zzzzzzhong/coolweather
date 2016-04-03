@@ -7,6 +7,9 @@ import org.json.JSONObject;
 import com.coolweather.app.model.CityInfo;
 import com.coolweather.app.model.CoolWeatherDB;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
 public class Utility {
@@ -43,10 +46,18 @@ public class Utility {
 		return false;
 	}
 	
-	public synchronized static String handleWeatherResponse(CoolWeatherDB coolWeatherDB, String response) {
+	/**
+	 * 解析服务器返回的数据，获取天气预报情况
+	 * @param coolWeatherDB
+	 * @param response
+	 * @return
+	 */
+	public synchronized static String handleWeatherResponse(Context context, String response, String cityId, String cityName) {
+		String result = null;
 		if(!TextUtils.isEmpty(response)) {
 			try {
-				String result = parseJSON(response);
+				result = (String)parseJSON(response);
+				saveWeatherInfo(context, result, cityId, cityName);
 				return result;
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -54,7 +65,21 @@ public class Utility {
 				e.printStackTrace();
 			}
 		}
-		return null;
+		return result;
+	}
+	
+	/**
+	 * 将服务器返回的天气信息保存到SharedPreference
+	 * @param context
+	 * @param weatherInfo
+	 */
+	public static void saveWeatherInfo(Context context, String weatherInfo, String cityId, String cityName) {
+		SharedPreferences.Editor editor = 
+				PreferenceManager.getDefaultSharedPreferences(context).edit();
+		editor.putString("cityId", cityId); //保存城市ID
+		editor.putString("cityName", cityName); //保存城市名称
+		editor.putString("weatherInfo", weatherInfo); //保存天气情况
+		editor.commit(); //提交保存
 	}
 	
 	private static String parseJSON(String response) throws Exception {
@@ -80,18 +105,23 @@ public class Utility {
 	 * @param jsonObject
 	 * @throws JSONException
 	 */
-	private static void getStatus(JSONObject jsonObject) throws JSONException {
-		String status = jsonObject.getString("status");
-		if("ok".equals(status)) {
-			buffer.append("访问情况：接口正常！\n");
-		} else if("invalid key".equals(status)) {
-			buffer.append("\n访问情况：错误的用户key！\n");
-		} else if("no more requests".equals(status)) {
-			buffer.append("\n访问情况：超过访问次数！\n");
-		} else if("anr".equals(status)) {
-			buffer.append("\n访问情况：服务无响应或超时！\n");
-		} else if("permission denied".equals(status)) {
-			buffer.append("\n访问情况：没有访问权限！\n");
+	private static void getStatus(JSONObject jsonObject) {
+		String status;
+		try {
+			status = jsonObject.getString("status");
+			if("ok".equals(status)) {
+				buffer.append("访问情况：接口正常！\n");
+			} else if("invalid key".equals(status)) {
+				buffer.append("\n访问情况：错误的用户key！\n");
+			} else if("no more requests".equals(status)) {
+				buffer.append("\n访问情况：超过访问次数！\n");
+			} else if("anr".equals(status)) {
+				buffer.append("\n访问情况：服务无响应或超时！\n");
+			} else if("permission denied".equals(status)) {
+				buffer.append("\n访问情况：没有访问权限！\n");
+			}
+		} catch (JSONException e) {
+			return;
 		}
 	}
 	
@@ -100,20 +130,25 @@ public class Utility {
 	 * @param jsonObject
 	 * @throws JSONException
 	 */
-	private static void getBasic(JSONObject jsonObject) throws JSONException {
-		JSONObject basic = jsonObject.getJSONObject("basic");
-		buffer.append("\n城市基本信息\n");
-		String city = basic.getString("city");
-		buffer.append("城市名称："+city+"\n");
-		String cnty = basic.getString("cnty");
-		buffer.append("国家名称："+cnty+"\n");
-		String lat = basic.getString("lat");
-		buffer.append("纬度："+lat+"\n");
-		String lon = basic.getString("lon");
-		buffer.append("经度："+lon+"\n");
-		JSONObject update = basic.getJSONObject("update");
-		String loc = update.getString("loc");
-		buffer.append("当地时间："+loc+"\n");	
+	private static void getBasic(JSONObject jsonObject) {
+		JSONObject basic;
+		try {
+			basic = jsonObject.getJSONObject("basic");
+			buffer.append("\n城市基本信息\n");
+			String city = basic.getString("city");
+			buffer.append("城市名称："+city+"\n");
+			String cnty = basic.getString("cnty");
+			buffer.append("国家名称："+cnty+"\n");
+			String lat = basic.getString("lat");
+			buffer.append("纬度："+lat+"\n");
+			String lon = basic.getString("lon");
+			buffer.append("经度："+lon+"\n");
+			JSONObject update = basic.getJSONObject("update");
+			String loc = update.getString("loc");
+			buffer.append("当地时间："+loc+"\n");	
+		} catch (JSONException e) {
+			return;
+		}	
 	}
 	
 	/**
@@ -121,26 +156,32 @@ public class Utility {
 	 * @param jsonObject
 	 * @throws JSONException
 	 */
-	private static void getAqi(JSONObject jsonObject) throws JSONException {
-		JSONObject aqi1 = jsonObject.getJSONObject("aqi");
-		buffer.append("\n空气质量指数*\n");
-		JSONObject city = aqi1.getJSONObject("city");
-		String aqi = city.getString("aqi");
-		buffer.append("空气质量指数："+aqi+"\n");
-		String co = city.getString("co");
-		buffer.append("一氧化碳1小时平均值(ug/m^3)："+co+"\n");
-		String no2 = city.getString("no2");
-		buffer.append("二氧化氮1小时平均值(ug/m^3)："+no2+"\n");
-		String o3 = city.getString("o3");
-		buffer.append("臭氧1小时平均值(ug/m^3)："+o3+"\n");
-		String pm10 = city.getString("pm10");
-		buffer.append("PM10 1小时平均值(ug/m^3)："+pm10+"\n");
-		String pm25 = city.getString("pm25");
-		buffer.append("PM2.5 1小时平均值(ug/m^3)："+pm25+"\n");
-		String qlty = city.getString("qlty");
-		buffer.append("空气质量类别："+qlty+"\n");
-		String so2 = city.getString("so2");
-		buffer.append("二氧化硫1小时平均值(ug/m^3)："+so2+"\n");
+	private static void getAqi(JSONObject jsonObject) {
+		JSONObject aqi1;
+		try {
+			aqi1 = jsonObject.getJSONObject("aqi");
+			buffer.append("\n空气质量指数*\n");
+			JSONObject city = aqi1.getJSONObject("city");
+			String aqi = city.getString("aqi");
+			buffer.append("空气质量指数："+aqi+"\n");
+			String co = city.getString("co");
+			buffer.append("一氧化碳1小时平均值(ug/m^3)："+co+"\n");
+			String no2 = city.getString("no2");
+			buffer.append("二氧化氮1小时平均值(ug/m^3)："+no2+"\n");
+			String o3 = city.getString("o3");
+			buffer.append("臭氧1小时平均值(ug/m^3)："+o3+"\n");
+			String pm10 = city.getString("pm10");
+			buffer.append("PM10 1小时平均值(ug/m^3)："+pm10+"\n");
+			String pm25 = city.getString("pm25");
+			buffer.append("PM2.5 1小时平均值(ug/m^3)："+pm25+"\n");
+			String qlty = city.getString("qlty");
+			buffer.append("空气质量类别："+qlty+"\n");
+			String so2 = city.getString("so2");
+			buffer.append("二氧化硫1小时平均值(ug/m^3)："+so2+"\n");
+		} catch (JSONException e) {
+			return;
+		}
+		
 	}
 	
 	/**
@@ -148,32 +189,37 @@ public class Utility {
 	 * @param jsonObject
 	 * @throws JSONException
 	 */
-	private static void getHourly(JSONObject jsonObject) throws JSONException {
-		JSONArray hourly = jsonObject.getJSONArray("hourly_forecast");		
-		buffer.append("\nHourly_forecast天气预报\n");
-		for(int i=0; i<hourly.length(); i++) {
-			JSONObject object = hourly.getJSONObject(i);
-			String date = object.getString("date");
-			buffer.append("当地日期："+date+"\n");
-			String hum = object.getString("hum");
-			buffer.append("湿度(%)："+hum+"\n");
-			String pop = object.getString("pop");
-			buffer.append("降水概率(%)："+pop+"\n");
-			String pres = object.getString("pres");
-			buffer.append("气压："+pres+"\n");
-			String tmp = object.getString("tmp");
-			buffer.append("温度："+tmp+"\n");
-			JSONObject wind = object.getJSONObject("wind");
-			buffer.append("风力状况：\n");
-			String deg = wind.getString("deg");
-			buffer.append("风向(角度)："+deg+"\n");
-			String dir = wind.getString("dir");
-			buffer.append("风向(方向)："+dir+"\n");
-			String sc = wind.getString("sc");
-			buffer.append("风力等级："+sc+"\n");
-			int spd = wind.getInt("spd");
-			buffer.append("风速(Kmph)："+spd+"\n");
-		}
+	private static void getHourly(JSONObject jsonObject) {
+		JSONArray hourly;
+		try {
+			hourly = jsonObject.getJSONArray("hourly_forecast");
+			buffer.append("\nHourly_forecast天气预报\n");
+			for(int i=0; i<hourly.length(); i++) {
+				JSONObject object = hourly.getJSONObject(i);
+				String date = object.getString("date");
+				buffer.append("当地日期："+date+"\n");
+				String hum = object.getString("hum");
+				buffer.append("湿度(%)："+hum+"\n");
+				String pop = object.getString("pop");
+				buffer.append("降水概率(%)："+pop+"\n");
+				String pres = object.getString("pres");
+				buffer.append("气压："+pres+"\n");
+				String tmp = object.getString("tmp");
+				buffer.append("温度："+tmp+"\n");
+				JSONObject wind = object.getJSONObject("wind");
+				buffer.append("风力状况：\n");
+				String deg = wind.getString("deg");
+				buffer.append("风向(角度)："+deg+"\n");
+				String dir = wind.getString("dir");
+				buffer.append("风向(方向)："+dir+"\n");
+				String sc = wind.getString("sc");
+				buffer.append("风力等级："+sc+"\n");
+				int spd = wind.getInt("spd");
+				buffer.append("风速(Kmph)："+spd+"\n");
+			}
+		} catch (JSONException e) {
+			return;
+		}		
 	}
 	
 	/**
@@ -181,50 +227,97 @@ public class Utility {
 	 * @param jsonObject
 	 * @throws JSONException
 	 */
-	private static void getDaily(JSONObject jsonObject) throws JSONException {
-		JSONArray daily = jsonObject.getJSONArray("daily_forecast");		
-		buffer.append("\n未来6天天气预报\n");
-		for(int i=0; i<daily.length(); i++) {					
-			JSONObject object = daily.getJSONObject(i);
-			JSONObject astro = object.getJSONObject("astro");
-			buffer.append("天文数值：\n");
-			String sr = astro.getString("sr");
-			buffer.append("日出时间："+sr+"\n");
-			String ss = astro.getString("ss");
-			buffer.append("日落时间："+ss+"\n");
-			JSONObject cond = object.getJSONObject("cond");
-			buffer.append("天气状况："+cond+"\n");
-			int code_d = cond.getInt("code_d");
-			buffer.append("白天天气代码："+code_d+"\n");
-			String txt_d = cond.getString("txt_d");
-			buffer.append("白天天气描述："+txt_d+"\n");
-			int code_n = cond.getInt("code_n");
-			buffer.append("夜间天气代码："+code_n+"\n");
-			String txt_n = cond.getString("txt_n");
-			buffer.append("夜间天气描述："+txt_n+"\n");
-			
-			String date = object.getString("date");
-			buffer.append("当地日期："+date+"\n");
-			String hum = object.getString("hum");
+	private static void getDaily(JSONObject jsonObject) {
+		JSONArray daily;
+		try {
+			daily = jsonObject.getJSONArray("daily_forecast");
+			buffer.append("\n未来6天天气预报\n");
+			for(int i=0; i<daily.length(); i++) {					
+				JSONObject object = daily.getJSONObject(i);
+				JSONObject astro = object.getJSONObject("astro");
+				buffer.append("天文数值：\n");
+				String sr = astro.getString("sr");
+				buffer.append("日出时间："+sr+"\n");
+				String ss = astro.getString("ss");
+				buffer.append("日落时间："+ss+"\n");
+				JSONObject cond = object.getJSONObject("cond");
+				buffer.append("天气状况："+cond+"\n");
+				int code_d = cond.getInt("code_d");
+				buffer.append("白天天气代码："+code_d+"\n");
+				String txt_d = cond.getString("txt_d");
+				buffer.append("白天天气描述："+txt_d+"\n");
+				int code_n = cond.getInt("code_n");
+				buffer.append("夜间天气代码："+code_n+"\n");
+				String txt_n = cond.getString("txt_n");
+				buffer.append("夜间天气描述："+txt_n+"\n");
+				
+				String date = object.getString("date");
+				buffer.append("当地日期："+date+"\n");
+				String hum = object.getString("hum");
+				buffer.append("湿度(%)："+hum+"\n");
+				String pcpn = object.getString("pcpn");
+				buffer.append("降雨量(mm)："+pcpn+"\n");
+				String pop = object.getString("pop");
+				buffer.append("降水概率(%)："+pop+"\n");
+				String pres = object.getString("pres");
+				buffer.append("气压："+pres+"\n");
+				
+				JSONObject tmp = object.getJSONObject("tmp");
+				buffer.append("温度：\n");
+				String max = tmp.getString("max");
+				buffer.append("最高温度(摄氏度)："+max+"\n");
+				String min = tmp.getString("min");
+				buffer.append("最低温度(摄氏度)："+min+"\n");
+				
+				String vis = object.getString("vis");
+				buffer.append("能见度(km)："+vis+"\n");
+				
+				JSONObject wind = object.getJSONObject("wind");
+				buffer.append("风力状况：\n");
+				String deg = wind.getString("deg");
+				buffer.append("风向(角度)："+deg+"\n");
+				String dir = wind.getString("dir");
+				buffer.append("风向(方向)："+dir+"\n");
+				String sc = wind.getString("sc");
+				buffer.append("风力等级："+sc+"\n");
+				String spd = wind.getString("spd");
+				buffer.append("风速(Kmph)："+spd+"\n");
+			}
+		} catch (JSONException e) {
+			return;
+		}		
+		
+	}
+	
+	/**
+	 * 获取实况天气
+	 * @param jsonObject
+	 * @throws JSONException
+	 */
+	private static void getNow(JSONObject jsonObject) {
+		JSONObject now;
+		try {
+			now = jsonObject.getJSONObject("now");
+			buffer.append("\n实况天气\n");
+			JSONObject cond = now.getJSONObject("cond");
+			buffer.append("天气状况：\n");
+			int code = cond.getInt("code");
+			buffer.append("天气代码："+code+"\n");
+			String txt = cond.getString("txt");
+			buffer.append("天气描述："+txt+"\n");
+			String fl = now.getString("fl");
+			buffer.append("体感温度："+fl+"\n");
+			String hum = now.getString("hum");
 			buffer.append("湿度(%)："+hum+"\n");
-			String pcpn = object.getString("pcpn");
+			String pcpn = now.getString("pcpn");
 			buffer.append("降雨量(mm)："+pcpn+"\n");
-			String pop = object.getString("pop");
-			buffer.append("降水概率(%)："+pop+"\n");
-			String pres = object.getString("pres");
+			String pres = now.getString("pres");
 			buffer.append("气压："+pres+"\n");
-			
-			JSONObject tmp = object.getJSONObject("tmp");
-			buffer.append("温度：\n");
-			String max = tmp.getString("max");
-			buffer.append("最高温度(摄氏度)："+max+"\n");
-			String min = tmp.getString("min");
-			buffer.append("最低温度(摄氏度)："+min+"\n");
-			
-			String vis = object.getString("vis");
+			String tmp = now.getString("tmp");
+			buffer.append("温度："+tmp+"\n");
+			String vis = now.getString("vis");
 			buffer.append("能见度(km)："+vis+"\n");
-			
-			JSONObject wind = object.getJSONObject("wind");
+			JSONObject wind = now.getJSONObject("wind");
 			buffer.append("风力状况：\n");
 			String deg = wind.getString("deg");
 			buffer.append("风向(角度)："+deg+"\n");
@@ -234,45 +327,9 @@ public class Utility {
 			buffer.append("风力等级："+sc+"\n");
 			String spd = wind.getString("spd");
 			buffer.append("风速(Kmph)："+spd+"\n");
+		} catch (JSONException e) {
+			return;
 		}
-	}
-	
-	/**
-	 * 获取实况天气
-	 * @param jsonObject
-	 * @throws JSONException
-	 */
-	private static void getNow(JSONObject jsonObject) throws JSONException {
-		JSONObject now = jsonObject.getJSONObject("now");		
-		buffer.append("\n实况天气\n");
-		JSONObject cond = now.getJSONObject("cond");
-		buffer.append("天气状况：\n");
-		int code = cond.getInt("code");
-		buffer.append("天气代码："+code+"\n");
-		String txt = cond.getString("txt");
-		buffer.append("天气描述："+txt+"\n");
-		String fl = now.getString("fl");
-		buffer.append("体感温度："+fl+"\n");
-		String hum = now.getString("hum");
-		buffer.append("湿度(%)："+hum+"\n");
-		String pcpn = now.getString("pcpn");
-		buffer.append("降雨量(mm)："+pcpn+"\n");
-		String pres = now.getString("pres");
-		buffer.append("气压："+pres+"\n");
-		String tmp = now.getString("tmp");
-		buffer.append("温度："+tmp+"\n");
-		String vis = now.getString("vis");
-		buffer.append("能见度(km)："+vis+"\n");
-		JSONObject wind = now.getJSONObject("wind");
-		buffer.append("风力状况：\n");
-		String deg = wind.getString("deg");
-		buffer.append("风向(角度)："+deg+"\n");
-		String dir = wind.getString("dir");
-		buffer.append("风向(方向)："+dir+"\n");
-		String sc = wind.getString("sc");
-		buffer.append("风力等级："+sc+"\n");
-		String spd = wind.getString("spd");
-		buffer.append("风速(Kmph)："+spd+"\n");
 	}
 	
 	/**
@@ -280,57 +337,62 @@ public class Utility {
 	 * @param jsonObject
 	 * @throws JSONException
 	 */
-	private static void getSuggestion(JSONObject jsonObject) throws JSONException {
-		JSONObject suggestion = jsonObject.getJSONObject("suggestion");		
-		buffer.append("\n生活指数*\n");
-		JSONObject comf = suggestion.getJSONObject("comf");
-		buffer.append("舒适指数：\n");
-		String brf = comf.getString("brf");
-		buffer.append("简介："+brf+"\n");
-		String txt = comf.getString("txt");
-		buffer.append("详情："+txt+"\n");
-		
-		JSONObject cw = suggestion.getJSONObject("cw");
-		buffer.append("洗车指数：\n");
-		String brf1 = cw.getString("brf");
-		buffer.append("简介："+brf1+"\n");
-		String txt1 = cw.getString("txt");
-		buffer.append("详情："+txt1+"\n");
-		
-		JSONObject drsg = suggestion.getJSONObject("drsg");
-		buffer.append("穿衣指数：\n");
-		String brf2 = drsg.getString("brf");
-		buffer.append("简介："+brf2+"\n");
-		String txt2 = drsg.getString("txt");
-		buffer.append("详情："+txt2+"\n");
-		
-		JSONObject flu = suggestion.getJSONObject("flu");
-		buffer.append("感冒指数：\n");
-		String brf3 = flu.getString("brf");
-		buffer.append("简介："+brf3+"\n");
-		String txt3 = flu.getString("txt");
-		buffer.append("详情："+txt3+"\n");
-		
-		JSONObject sport = suggestion.getJSONObject("sport");
-		buffer.append("运动指数：\n");
-		String brf4 = sport.getString("brf");
-		buffer.append("简介："+brf4+"\n");
-		String txt4 = sport.getString("txt");
-		buffer.append("详情："+txt4+"\n");
-		
-		JSONObject trav = suggestion.getJSONObject("trav");
-		buffer.append("旅游指数：\n");
-		String brf5 = trav.getString("brf");
-		buffer.append("简介："+brf5+"\n");
-		String txt5 = trav.getString("txt");
-		buffer.append("详情："+txt5+"\n");
-		
-		JSONObject uv = suggestion.getJSONObject("uv");
-		buffer.append("紫外线指数：\n");
-		String brf6 = uv.getString("brf");
-		buffer.append("简介："+brf6+"\n");
-		String txt6 = uv.getString("txt");
-		buffer.append("详情："+txt6+"\n");
+	private static void getSuggestion(JSONObject jsonObject) {
+		JSONObject suggestion;
+		try {
+			suggestion = jsonObject.getJSONObject("suggestion");
+			buffer.append("\n生活指数*\n");
+			JSONObject comf = suggestion.getJSONObject("comf");
+			buffer.append("舒适指数：\n");
+			String brf = comf.getString("brf");
+			buffer.append("简介："+brf+"\n");
+			String txt = comf.getString("txt");
+			buffer.append("详情："+txt+"\n");
+			
+			JSONObject cw = suggestion.getJSONObject("cw");
+			buffer.append("洗车指数：\n");
+			String brf1 = cw.getString("brf");
+			buffer.append("简介："+brf1+"\n");
+			String txt1 = cw.getString("txt");
+			buffer.append("详情："+txt1+"\n");
+			
+			JSONObject drsg = suggestion.getJSONObject("drsg");
+			buffer.append("穿衣指数：\n");
+			String brf2 = drsg.getString("brf");
+			buffer.append("简介："+brf2+"\n");
+			String txt2 = drsg.getString("txt");
+			buffer.append("详情："+txt2+"\n");
+			
+			JSONObject flu = suggestion.getJSONObject("flu");
+			buffer.append("感冒指数：\n");
+			String brf3 = flu.getString("brf");
+			buffer.append("简介："+brf3+"\n");
+			String txt3 = flu.getString("txt");
+			buffer.append("详情："+txt3+"\n");
+			
+			JSONObject sport = suggestion.getJSONObject("sport");
+			buffer.append("运动指数：\n");
+			String brf4 = sport.getString("brf");
+			buffer.append("简介："+brf4+"\n");
+			String txt4 = sport.getString("txt");
+			buffer.append("详情："+txt4+"\n");
+			
+			JSONObject trav = suggestion.getJSONObject("trav");
+			buffer.append("旅游指数：\n");
+			String brf5 = trav.getString("brf");
+			buffer.append("简介："+brf5+"\n");
+			String txt5 = trav.getString("txt");
+			buffer.append("详情："+txt5+"\n");
+			
+			JSONObject uv = suggestion.getJSONObject("uv");
+			buffer.append("紫外线指数：\n");
+			String brf6 = uv.getString("brf");
+			buffer.append("简介："+brf6+"\n");
+			String txt6 = uv.getString("txt");
+			buffer.append("详情："+txt6+"\n");
+		} catch (JSONException e) {
+			return;
+		}
 	}
 	
 	

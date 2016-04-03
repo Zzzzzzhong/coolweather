@@ -12,7 +12,10 @@ import com.coolweather.app.util.Utility;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -44,6 +47,18 @@ public class ChooseActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		if(!getIntent().getBooleanExtra("fromWeatherAcitivity", false)) {
+			SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+			if(!TextUtils.isEmpty(prefs.getString("cityId", null))) {
+				//如果从SharedPreferences读到的cityId不为空，则直接进入WeatherActivity显示天气
+				Intent intent = new Intent(ChooseActivity.this, WeatherActivity.class);
+				startActivity(intent);
+				finish();
+				return;
+			}
+		}
+		
 		requestWindowFeature(Window.FEATURE_NO_TITLE); //设置无标题栏
 		setContentView(R.layout.choose_area);
 		
