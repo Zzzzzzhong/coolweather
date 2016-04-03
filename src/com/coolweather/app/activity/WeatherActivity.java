@@ -13,6 +13,8 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -137,6 +139,18 @@ public class WeatherActivity extends Activity implements OnClickListener {
 	/** 显示本地天气 */
 	private void showWeather() {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		
+		//如果是第一次打开此应用，则设置默认自动更新天气，自动更新时间间隔为4小时
+		if(prefs.getBoolean("firstTime", true)) {
+			SharedPreferences.Editor editor = prefs.edit();
+			editor.putBoolean("firstTime", false);
+			editor.putBoolean("isAutoUpdate", true); //默认自动更新天气
+			editor.putInt("autoUpdatePeriod", 4); //默认每4小时更新一次
+			//还可以设置默认地点
+			
+			editor.commit(); //提交
+		}
+		
 		tvCity.setText(prefs.getString("cityName", null));
 		tvWeather.setText(prefs.getString("weatherInfo", null));
 		
@@ -148,7 +162,7 @@ public class WeatherActivity extends Activity implements OnClickListener {
 	private void showProgressDialog() {
 		if(progressDialog == null) {
 			progressDialog = new ProgressDialog(this);
-			progressDialog.setMessage("正在 加载..."); //设置对话框内容
+			progressDialog.setMessage("正在加载..."); //设置对话框内容
 			progressDialog.setCanceledOnTouchOutside(false); //设置不能通过触摸对话框外的地方使对话框消失
 		}
 		progressDialog.show(); //显示进度对话框
@@ -159,6 +173,23 @@ public class WeatherActivity extends Activity implements OnClickListener {
 		if(progressDialog != null) {
 			progressDialog.dismiss(); //隐藏进度对话框
 		}
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.main, menu); //解析得到菜单
+		return true; //表示创建菜单成功
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()) {
+		case R.id.action_settings:
+			Intent intent = new Intent(this, MenuActivity.class);
+			startActivity(intent);
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 
 }

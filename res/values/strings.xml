@@ -10,5 +10,23 @@
     <string name="refreshing">同步中...</string>
     
     <string name="initial_title">酷欧天气</string>
+    
+    <string name="setting">设置</string>
+    
+    <string name="isAutoUpdate">是否在后台自动更新天气</string>
+    
+    <string name="close">关闭</string>
+    
+    <string name="open">打开</string>
+    
+    <string name="update_period">自动更新时间间隔：</string>
+    
+    <string name="four_hour">4小时</string>
+    
+    <string name="setting_time_period">设置自动更新时间</string>
+    
+    <string name="save_change">保存修改</string>
+    
+    <string name="hour">小时</string>
 
 </resources>

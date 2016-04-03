@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="10dp"
+    android:orientation="vertical" >
+    
+    <LinearLayout android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp">
+        
+        <TextView android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical"
+            android:textSize="18sp"
+            android:text="@string/isAutoUpdate" />
+        
+        <ToggleButton android:id="@+id/tb_update_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOn="@string/open"
+            android:textOff="@string/close"
+            android:checked="true" />
+        
+    </LinearLayout>
+    
+    <ImageView android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#484e61" />
+    
+    <LinearLayout android:id="@+id/layout_show_time"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp">
+        
+        <TextView android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginTop="20dp"
+	        android:textSize="18sp"
+	        android:text="@string/update_period" />
+    
+	    <TextView android:id="@+id/tv_update_period"
+	        android:layout_width="0dp"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="1"
+	        android:layout_marginTop="20dp"
+	        android:textSize="18sp" />
+	    
+	    <Button android:id="@+id/btn_set_time"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginTop="20dp"
+	        android:text="@string/setting" />
+        
+    </LinearLayout>
+    
+    <LinearLayout  android:id="@+id/layout_set_time"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:visibility="gone">
+        
+        <TextView android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:textSize="18sp"
+	        android:text="@string/setting_time_period" />
+	    
+	    <Spinner android:id="@+id/spin_choose_time"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginLeft="20dp"
+	        android:entries="@array/time_period_array" />
+        
+    </LinearLayout>
+    
+    <Button android:id="@+id/btn_save_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/save_change"
+        android:visibility="gone" />
+    
+
+
+</LinearLayout>
