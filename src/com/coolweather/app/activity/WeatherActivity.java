@@ -1,6 +1,7 @@
 package com.coolweather.app.activity;
 
 import com.coolweather.app.model.CoolWeatherDB;
+import com.coolweather.app.service.AutoUpdateService;
 import com.coolweather.app.util.HttpCallbackListener;
 import com.coolweather.app.util.HttpUtil;
 import com.coolweather.app.util.Utility;
@@ -138,6 +139,9 @@ public class WeatherActivity extends Activity implements OnClickListener {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		tvCity.setText(prefs.getString("cityName", null));
 		tvWeather.setText(prefs.getString("weatherInfo", null));
+		
+		Intent sIntent = new Intent(this, AutoUpdateService.class);
+		startService(sIntent);
 	}
 	
 	/** 显示进度对话框 */
