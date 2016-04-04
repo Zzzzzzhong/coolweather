@@ -41,6 +41,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -56,7 +57,12 @@ public class WeatherActivity extends Activity implements OnClickListener {
 	private Button btnSwitchCity;
 	private Button btnRefresh;
 	private TextView tvCity;
-	private TextView tvWeather;
+	private TextView tvUpdateTime;
+	private ImageView ivWeather;
+	private TextView tvTmp;
+	private TextView tvTmpRange;
+	private TextView tvDescription;
+	private TextView tvMore;
 	private ProgressDialog progressDialog;
 	
 	CoolWeatherDB coolWeatherDB;
@@ -101,10 +107,17 @@ public class WeatherActivity extends Activity implements OnClickListener {
 		btnSwitchCity = (Button) findViewById(R.id.btn_switch_city);
 		btnRefresh = (Button) findViewById(R.id.btn_refresh);
 		tvCity = (TextView) findViewById(R.id.tv_city);
-		tvWeather = (TextView) findViewById(R.id.tv_weather);
+		ivWeather = (ImageView) findViewById(R.id.iv_weather);
+		tvUpdateTime = (TextView) findViewById(R.id.tv_update_time);
+		tvTmp = (TextView) findViewById(R.id.tv_tmp);
+		tvTmpRange = (TextView) findViewById(R.id.tv_tmp_range);
+		tvDescription = (TextView) findViewById(R.id.tv_description);
+		tvMore = (TextView) findViewById(R.id.tv_more);
 		
 		btnSwitchCity.setOnClickListener(this);
 		btnRefresh.setOnClickListener(this);
+		tvMore.setClickable(true);
+		tvMore.setOnClickListener(this);
 	}
 	
 	@Override
@@ -125,6 +138,10 @@ public class WeatherActivity extends Activity implements OnClickListener {
 				queryWeatherOfCity(cityId, cityName);
 			}
 			break;
+		case R.id.tv_more:
+			Intent intent1 = new Intent(WeatherActivity.this, DetailActivity.class);
+			startActivity(intent1);
+			break;
 		}
 	}
 	
@@ -138,16 +155,19 @@ public class WeatherActivity extends Activity implements OnClickListener {
 				+ "cityid=" + cityId + "&key=16902dbe3ac24c6c8bfccc2056624f13";
 		showProgressDialog();
 		HttpUtil.sendHttpRequest(address, new HttpCallbackListener() {
-			String result = null;
+			Map<String, String> result = null;
 			@Override
 			public void onFinish(String response) {
-				result = Utility.handleWeatherResponse(WeatherActivity.this, response, cityId, cityName);
+				result = Utility.handleWeatherResponse(WeatherActivity.this, response);
 				runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
 						closeProgressDialog();
-						if(!TextUtils.isEmpty(result)) {
+						if(result != null) {
 //							tvWeather.setText(result);
+							SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
+							Toast.makeText(WeatherActivity.this, 
+									prefs.getString("status", null), Toast.LENGTH_SHORT).show();
 							showWeather();
 						}else {
 							Toast.makeText(WeatherActivity.this, 
@@ -190,8 +210,18 @@ public class WeatherActivity extends Activity implements OnClickListener {
 			editor.commit(); //提交
 		}
 		
+		String code = prefs.getString("code", null);
+		if("506".equals(code)) {
+			code = "999"; //没有506火山灰的图片，这里设置为未知
+		}
+		int imageId = getResources().getIdentifier("t" + code, "drawable", getPackageName());
+		ivWeather.setImageResource(imageId); //设置天气图片
+		
 		tvCity.setText(prefs.getString("cityName", null));
-		tvWeather.setText(prefs.getString("weatherInfo", null));
+		tvUpdateTime.setText(getResources().getString(R.string.update_time) + prefs.getString("loc", null));
+		tvTmp.setText(prefs.getString("tmp", null) + "℃");
+		tvTmpRange.setText(prefs.getString("minTemp", null) + "℃ ~ " + prefs.getString("maxTemp", null) + "℃");
+		tvDescription.setText(prefs.getString("txt", null));
 		
 		Intent sIntent = new Intent(this, AutoUpdateService.class);
 		startService(sIntent);

@@ -33,5 +33,9 @@
     <string name="no_location_provider">没有可用的位置提供器\n\n请在设置 -> 定位服务 中允许"访问我的位置信息"并选择"位置信息来源"</string>
     
     <string name="gps_failure">定位失败，请您在主页手动选择城市</string>
+    
+    <string name="more_detail">更多详情</string>
+    
+    <string name="update_time">更新时间：</string>
 
 </resources>
