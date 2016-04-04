@@ -150,6 +150,48 @@ public class Utility {
 			return;
 		}	
 	}
+	/**
+	 * 获取实况天气
+	 * @param jsonObject
+	 * @throws JSONException
+	 */
+	private static void getNow(JSONObject jsonObject) {
+		JSONObject now;
+		try {
+			now = jsonObject.getJSONObject("now");
+			buffer.append("\n实况天气\n");
+			JSONObject cond = now.getJSONObject("cond");
+			buffer.append("天气状况：\n");
+			int code = cond.getInt("code");
+			buffer.append("天气代码："+code+"\n");
+			String txt = cond.getString("txt");
+			buffer.append("天气描述："+txt+"\n");
+			String fl = now.getString("fl");
+			buffer.append("体感温度："+fl+"\n");
+			String hum = now.getString("hum");
+			buffer.append("湿度(%)："+hum+"\n");
+			String pcpn = now.getString("pcpn");
+			buffer.append("降雨量(mm)："+pcpn+"\n");
+			String pres = now.getString("pres");
+			buffer.append("气压："+pres+"\n");
+			String tmp = now.getString("tmp");
+			buffer.append("温度："+tmp+"\n");
+			String vis = now.getString("vis");
+			buffer.append("能见度(km)："+vis+"\n");
+			JSONObject wind = now.getJSONObject("wind");
+			buffer.append("风力状况：\n");
+			String deg = wind.getString("deg");
+			buffer.append("风向(角度)："+deg+"\n");
+			String dir = wind.getString("dir");
+			buffer.append("风向(方向)："+dir+"\n");
+			String sc = wind.getString("sc");
+			buffer.append("风力等级："+sc+"\n");
+			String spd = wind.getString("spd");
+			buffer.append("风速(Kmph)："+spd+"\n");
+		} catch (JSONException e) {
+			return;
+		}
+	}
 	
 	/**
 	 * 获取空气质量指数*
@@ -287,49 +329,6 @@ public class Utility {
 			return;
 		}		
 		
-	}
-	
-	/**
-	 * 获取实况天气
-	 * @param jsonObject
-	 * @throws JSONException
-	 */
-	private static void getNow(JSONObject jsonObject) {
-		JSONObject now;
-		try {
-			now = jsonObject.getJSONObject("now");
-			buffer.append("\n实况天气\n");
-			JSONObject cond = now.getJSONObject("cond");
-			buffer.append("天气状况：\n");
-			int code = cond.getInt("code");
-			buffer.append("天气代码："+code+"\n");
-			String txt = cond.getString("txt");
-			buffer.append("天气描述："+txt+"\n");
-			String fl = now.getString("fl");
-			buffer.append("体感温度："+fl+"\n");
-			String hum = now.getString("hum");
-			buffer.append("湿度(%)："+hum+"\n");
-			String pcpn = now.getString("pcpn");
-			buffer.append("降雨量(mm)："+pcpn+"\n");
-			String pres = now.getString("pres");
-			buffer.append("气压："+pres+"\n");
-			String tmp = now.getString("tmp");
-			buffer.append("温度："+tmp+"\n");
-			String vis = now.getString("vis");
-			buffer.append("能见度(km)："+vis+"\n");
-			JSONObject wind = now.getJSONObject("wind");
-			buffer.append("风力状况：\n");
-			String deg = wind.getString("deg");
-			buffer.append("风向(角度)："+deg+"\n");
-			String dir = wind.getString("dir");
-			buffer.append("风向(方向)："+dir+"\n");
-			String sc = wind.getString("sc");
-			buffer.append("风力等级："+sc+"\n");
-			String spd = wind.getString("spd");
-			buffer.append("风速(Kmph)："+spd+"\n");
-		} catch (JSONException e) {
-			return;
-		}
 	}
 	
 	/**

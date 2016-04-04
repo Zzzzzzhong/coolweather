@@ -13,6 +13,7 @@
     
     <string name="setting">设置</string>
     
+    <string name="isAutoGetLocation">是否自动获取所在位置</string>
     <string name="isAutoUpdate">是否在后台自动更新天气</string>
     
     <string name="close">关闭</string>
@@ -28,5 +29,9 @@
     <string name="save_change">保存修改</string>
     
     <string name="hour">小时</string>
+    
+    <string name="no_location_provider">没有可用的位置提供器\n\n请在设置 -> 定位服务 中允许"访问我的位置信息"并选择"位置信息来源"</string>
+    
+    <string name="gps_failure">定位失败，请您在主页手动选择城市</string>
 
 </resources>

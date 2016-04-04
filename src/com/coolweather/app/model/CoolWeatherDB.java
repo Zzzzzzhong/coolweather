@@ -69,5 +69,19 @@ public class CoolWeatherDB {
 		}
 		return list;
 	}
+	
+	public CityInfo getCityInfoByCityName(String cityName) {
+		CityInfo cityInfo = null; //搜索到的结果
+		Cursor cursor = db.query(TABLE_NAME, null, "city_name=?", new String[] {cityName}, null, null, null);
+		if(cursor.moveToFirst()) {
+			cityInfo = new CityInfo(); //创建CityInfo的实例并从数据库读取数据对其初始化
+			cityInfo.setId(cursor.getInt(cursor.getColumnIndex("id")));
+			cityInfo.setCityName(cursor.getString(cursor.getColumnIndex("city_name")));
+			cityInfo.setCityId(cursor.getString(cursor.getColumnIndex("city_id")));
+			cityInfo.setProvince(cursor.getString(cursor.getColumnIndex("province")));
+			cityInfo.setCnty(cursor.getString(cursor.getColumnIndex("cnty")));
+		}
+		return cityInfo;
+	}
 
 }

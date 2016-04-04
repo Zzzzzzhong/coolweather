@@ -7,10 +7,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.text.TextUtils;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.Button;
@@ -19,11 +17,12 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
 public class MenuActivity extends Activity implements OnCheckedChangeListener, OnClickListener {
 	
+	/** 自动获取位置的开关 */
+	private ToggleButton btnLocationSwitch;
 	/** 自动更新天气的开关 */
 	private ToggleButton btnUpdataSwitch;
 	/** 显示自动更新时间的TextView */
@@ -45,7 +44,7 @@ public class MenuActivity extends Activity implements OnCheckedChangeListener, O
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
+//		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.menu_layout);
 		
 		initView();
@@ -53,6 +52,7 @@ public class MenuActivity extends Activity implements OnCheckedChangeListener, O
 
 	/** 初始化布局页面 */
 	private void initView() {
+		btnLocationSwitch = (ToggleButton) findViewById(R.id.tb_location_switch);
 		btnUpdataSwitch = (ToggleButton) findViewById(R.id.tb_update_switch);
 		llShowTime = (LinearLayout) findViewById(R.id.layout_show_time);
 		llSetTime = (LinearLayout) findViewById(R.id.layout_set_time);
@@ -62,6 +62,7 @@ public class MenuActivity extends Activity implements OnCheckedChangeListener, O
 		btnSaveTime = (Button) findViewById(R.id.btn_save_time);
 		
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		Boolean isAutoGetLocation = prefs.getBoolean("isAutoGetLocation", false);
 		Boolean isAutoUpdate = prefs.getBoolean("isAutoUpdate", false);
 		int autoUpdatePeriod = prefs.getInt("autoUpdatePeriod", 0);
 		if(isAutoUpdate) {
@@ -73,9 +74,19 @@ public class MenuActivity extends Activity implements OnCheckedChangeListener, O
 			btnUpdataSwitch.setChecked(false);
 		}
 		
+		if(isAutoGetLocation) {
+			btnLocationSwitch.setChecked(true);
+		} else {
+			btnLocationSwitch.setChecked(false);
+		}
+		
 		if(autoUpdatePeriod > 0) {
 			tvUpdatePeriod.setText(autoUpdatePeriod + getString(R.string.hour));
 		}
+		
+//		http://apis.baidu.com/heweather/weather/free?city=beijing&apikey=16902dbe3ac24c6c8bfccc2056624f13
+//		int i = 3;
+//		getResources().getIdentifier("ic_launcher", "drawable", getPackageName());
 		
 		spinChooseTime.setSelection(autoUpdatePeriod - 1); //默认为已选的更新时间
 		spinChooseTime.setOnItemSelectedListener(new OnItemSelectedListener() {
@@ -90,6 +101,7 @@ public class MenuActivity extends Activity implements OnCheckedChangeListener, O
 			}
 		});
 		
+		btnLocationSwitch.setOnCheckedChangeListener(this);
 		btnUpdataSwitch.setOnCheckedChangeListener(this);
 		btnSetTime.setOnClickListener(this);
 		btnSaveTime.setOnClickListener(this);
@@ -109,6 +121,14 @@ public class MenuActivity extends Activity implements OnCheckedChangeListener, O
 			} else {
 				editor.putBoolean("isAutoUpdate", true);
 				llShowTime.setVisibility(View.VISIBLE);
+			}
+			editor.commit();
+			break;
+		case R.id.tb_location_switch:
+			if(! isChecked) {
+				editor.putBoolean("isAutoGetLocation", false);
+			} else {
+				editor.putBoolean("isAutoGetLocation", true);
 			}
 			editor.commit();
 			break;

@@ -15,6 +15,27 @@
             android:layout_weight="1"
             android:layout_gravity="center_vertical"
             android:textSize="18sp"
+            android:text="@string/isAutoGetLocation" />
+        
+        <ToggleButton android:id="@+id/tb_location_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOn="@string/open"
+            android:textOff="@string/close"
+            android:checked="false" />
+        
+    </LinearLayout>
+    
+    <LinearLayout android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp">
+        
+        <TextView android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical"
+            android:textSize="18sp"
             android:text="@string/isAutoUpdate" />
         
         <ToggleButton android:id="@+id/tb_update_switch"
