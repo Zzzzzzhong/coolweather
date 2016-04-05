@@ -1,5 +1,7 @@
 package com.coolweather.app.util;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -90,9 +92,25 @@ public class Utility {
 		editor.putString("code", weatherInfo.get("code")); //保存天气代码
 		editor.putString("txt", weatherInfo.get("txt")); //保存天气描述
 		editor.putString("tmp", weatherInfo.get("tmp")); //保存当前温度
-		editor.putString("maxTemp", weatherInfo.get("maxTemp")); //保存当天最高温度
-		editor.putString("minTemp", weatherInfo.get("minTemp")); //保存当天最低温度
 		editor.putString("weatherInfo", weatherInfo.get("weatherInfo")); //保存当天最低温度
+		
+		String[] days = {"周一", "周二", "周三", "周四", "周五", "周六", "周日"};
+		
+		try {
+			for(int i=0; i<4; i++) {
+				editor.putString("code" + i, weatherInfo.get("code" + i)); //保存每日天气代码
+				editor.putString("date" + i, weatherInfo.get("date" + i)); //保存每日日期
+				editor.putString("day" + i, days[dayForWeek(weatherInfo.get("date" + i)) - 1]);
+				editor.putString("max" + i, weatherInfo.get("max" + i)); //保存每日最高温度
+				editor.putString("min" + i, weatherInfo.get("min" + i)); //保存每日最低温度
+			}
+			//存放当日是周几
+			editor.putString("dayOfWeek", days[dayForWeek(weatherInfo.get("loc")) - 1]);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		
 		editor.commit(); //提交保存
 	}
@@ -330,17 +348,18 @@ public class Utility {
 				buffer.append("日落时间："+ss+"\n");
 				JSONObject cond = object.getJSONObject("cond");
 				buffer.append("天气状况："+cond+"\n");
-				int code_d = cond.getInt("code_d");
+				String code_d = cond.getString("code_d");
 				buffer.append("白天天气代码："+code_d+"\n");
 				String txt_d = cond.getString("txt_d");
+				weatherInfo.put("code" + i, code_d);
 				buffer.append("白天天气描述："+txt_d+"\n");
 				int code_n = cond.getInt("code_n");
 				buffer.append("夜间天气代码："+code_n+"\n");
 				String txt_n = cond.getString("txt_n");
 				buffer.append("夜间天气描述："+txt_n+"\n");
-				
 				String date = object.getString("date");
 				buffer.append("当地日期："+date+"\n");
+				weatherInfo.put("date" + i, date);
 				String hum = object.getString("hum");
 				buffer.append("湿度(%)："+hum+"\n");
 				String pcpn = object.getString("pcpn");
@@ -354,13 +373,11 @@ public class Utility {
 				buffer.append("温度：\n");
 				String max = tmp.getString("max");
 				buffer.append("最高温度(摄氏度)："+max+"\n");
+				weatherInfo.put("max" + i, max);
 				String min = tmp.getString("min");
 				buffer.append("最低温度(摄氏度)："+min+"\n");
-				if(i == 0) {
-					//保存当日的最高和最低气温
-					weatherInfo.put("maxTemp", max);
-					weatherInfo.put("minTemp", min);
-				}
+				weatherInfo.put("min" + i, min);
+				
 				String vis = object.getString("vis");
 				buffer.append("能见度(km)："+vis+"\n");
 				
@@ -442,6 +459,26 @@ public class Utility {
 		} catch (JSONException e) {
 			return;
 		}
+	}
+	
+	/** 
+	    * 判断当前日期是星期几<br> 
+	    * <br> 
+	    * @param pTime 修要判断的时间<br> 
+	    * @return dayForWeek 判断结果<br> 
+	    * @Exception 发生异常<br> 
+	    */  
+	public static int dayForWeek(String pTime) throws Exception {  
+	 SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");  
+	 Calendar c = Calendar.getInstance();  
+	 c.setTime(format.parse(pTime));  
+	 int dayForWeek = 0;  
+	 if(c.get(Calendar.DAY_OF_WEEK) == 1){  
+	  dayForWeek = 7;  
+	 }else{  
+	  dayForWeek = c.get(Calendar.DAY_OF_WEEK) - 1;  
+	 }  
+	 return dayForWeek;  
 	}
 	
 	

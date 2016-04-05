@@ -1,6 +1,7 @@
 package com.coolweather.app.activity;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,9 +62,14 @@ public class WeatherActivity extends Activity implements OnClickListener {
 	private ImageView ivWeather;
 	private TextView tvTmp;
 	private TextView tvTmpRange;
+	private TextView tvDayOfWeek;
 	private TextView tvDescription;
 	private TextView tvMore;
 	private ProgressDialog progressDialog;
+	
+	private List<TextView> tvDays;
+	private List<ImageView> ivWeathers;
+	private List<TextView> tvTempRanges;
 	
 	CoolWeatherDB coolWeatherDB;
 
@@ -111,8 +117,23 @@ public class WeatherActivity extends Activity implements OnClickListener {
 		tvUpdateTime = (TextView) findViewById(R.id.tv_update_time);
 		tvTmp = (TextView) findViewById(R.id.tv_tmp);
 		tvTmpRange = (TextView) findViewById(R.id.tv_tmp_range);
+		tvDayOfWeek = (TextView) findViewById(R.id.tv_day_of_week);
 		tvDescription = (TextView) findViewById(R.id.tv_description);
 		tvMore = (TextView) findViewById(R.id.tv_more);
+		
+		int[] tvDaysId = {R.id.tv_day0, R.id.tv_day1, R.id.tv_day2, R.id.tv_day3};
+		int[] ivWeathersId = {R.id.iv_weather0, R.id.iv_weather1, R.id.iv_weather2, R.id.iv_weather3};
+		int[] tvTempRangesId = {R.id.tv_temp_range0, R.id.tv_temp_range1, R.id.tv_temp_range2, R.id.tv_temp_range3};
+		
+		tvDays = new ArrayList<TextView>();
+		ivWeathers = new ArrayList<ImageView>();
+		tvTempRanges = new ArrayList<TextView>();
+		
+		for(int i=0; i<tvDaysId.length; i++) {
+			tvDays.add((TextView) findViewById(tvDaysId[i]));
+			ivWeathers.add((ImageView) findViewById(ivWeathersId[i]));
+			tvTempRanges.add((TextView) findViewById(tvTempRangesId[i]));
+		}
 		
 		btnSwitchCity.setOnClickListener(this);
 		btnRefresh.setOnClickListener(this);
@@ -163,16 +184,17 @@ public class WeatherActivity extends Activity implements OnClickListener {
 					@Override
 					public void run() {
 						closeProgressDialog();
+						SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
 						if(result != null) {
 //							tvWeather.setText(result);
-							SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
 							Toast.makeText(WeatherActivity.this, 
 									prefs.getString("status", null), Toast.LENGTH_SHORT).show();
 							showWeather();
 						}else {
+							
 							Toast.makeText(WeatherActivity.this, 
 									R.string.load_error, Toast.LENGTH_SHORT).show();
-						}
+						}						
 						
 					}
 				});
@@ -186,6 +208,7 @@ public class WeatherActivity extends Activity implements OnClickListener {
 					public void run() {
 						//隐藏进度对话框并弹出toast提示加载失败
 						closeProgressDialog();
+						showWeather();
 						Toast.makeText(WeatherActivity.this, 
 								R.string.load_error, Toast.LENGTH_SHORT).show();
 					}
@@ -220,8 +243,20 @@ public class WeatherActivity extends Activity implements OnClickListener {
 		tvCity.setText(prefs.getString("cityName", null));
 		tvUpdateTime.setText(getResources().getString(R.string.update_time) + prefs.getString("loc", null));
 		tvTmp.setText(prefs.getString("tmp", null) + "℃");
-		tvTmpRange.setText(prefs.getString("minTemp", null) + "℃ ~ " + prefs.getString("maxTemp", null) + "℃");
+		tvTmpRange.setText(prefs.getString("min0", null) + "℃ ~ " + prefs.getString("max0", null) + "℃");
+		tvDayOfWeek.setText(prefs.getString("dayOfWeek", null));
 		tvDescription.setText(prefs.getString("txt", null));
+		
+		for(int i=0; i<tvDays.size(); i++) {
+			tvDays.get(i).setText(prefs.getString("day" + i, null));
+			int id = getResources().getIdentifier("t" + prefs.getString("code" + i, null), "drawable", getPackageName());
+			ivWeathers.get(i).setImageResource(id); //设置天气图片
+			tvTempRanges.get(i).setText(prefs.getString("min" + i, null) + "℃ ~ " + prefs.getString("max" + i, null) + "℃");
+			LogUtil.d(TAG, prefs.getString("day" + i, null));
+			LogUtil.d(TAG, prefs.getString("code" + i, null));
+			LogUtil.d(TAG, prefs.getString("min" + i, null));
+			LogUtil.d(TAG, prefs.getString("max" + i, null));
+		}
 		
 		Intent sIntent = new Intent(this, AutoUpdateService.class);
 		startService(sIntent);
